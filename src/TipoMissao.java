@@ -1,0 +1,5 @@
+package resgate;
+
+public enum TipoMissao {
+    RECONHECIMENTO, LOCALIZACAO_PESSOAS, TRANSPORTE_SUPRIMENTOS
+}
