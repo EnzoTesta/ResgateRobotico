@@ -62,21 +62,42 @@ public class CentralResgate implements Serializable {
         System.out.println("Área " + area.getNome() + " (ID: " + area.getId() + ") cadastrada com sucesso.");
     }
 
+
     // 3. Registro de Missão
     public void registrarMissao(Missao missao) {
         if (missao == null) {
             throw new IllegalArgumentException("A missão não pode ser nula.");
         }
 
+        if (missao.getStatus() != StatusMissao.PENDENTE) {
+            throw new IllegalStateException("Apenas missões pendentes podem ser registradas.");
+        }
+
+        if (missao.getRoboResponsavel() != null) {
+            throw new IllegalStateException("A missão já possui um robô atribuído.");
+        }
+
         for (Missao m : missoes) {
             if (m.getId() == missao.getId()) {
-                throw new IllegalArgumentException("Já existe uma missão com o ID " + missao.getId() + ".");
+                throw new IllegalArgumentException(
+                        "Já existe uma missão com o ID " + missao.getId() + ".");
             }
         }
 
+        AreaOperacao areaCadastrada = buscarAreaPorId(missao.getArea().getId());
+
+        if (areaCadastrada == null) {
+            throw new IllegalArgumentException(
+                    "A área da missão não está cadastrada nesta central.");
+        }
+
+        missao.setArea(areaCadastrada);
+
         missoes.add(missao);
-        missoesPendentes.offer(missao); // Adiciona na fila de atendimento
-        System.out.println("Missão " + missao.getId() + " registrada e adicionada à fila de pendências.");
+        missoesPendentes.offer(missao);
+
+        System.out.println("Missão " + missao.getId()
+                + " registrada e adicionada à fila de pendências.");
     }
 
     // 4. Listar Robôs Disponíveis (usando Streams)
@@ -98,24 +119,35 @@ public class CentralResgate implements Serializable {
         return disponiveis;
     }
 
-    // 5. Atribuir Robô a Missão
+    // 5. Atribuição de Robô à Missão
     public void atribuirRoboMissao(int idRobo, int idMissao) {
-        Robo robo = robos.get(idRobo);
+        Robo robo = buscarRoboPorId(idRobo);
+
         if (robo == null) {
-            throw new IllegalArgumentException("Robô com ID " + idRobo + " não encontrado.");
+            throw new IllegalArgumentException("Robô não encontrado.");
         }
 
         Missao missao = buscarMissaoPorId(idMissao);
+
         if (missao == null) {
-            throw new IllegalArgumentException("Missão com ID " + idMissao + " não encontrada.");
+            throw new IllegalArgumentException("Missão não encontrada.");
         }
 
-        // Tenta atribuir o robô na missão (valida compatibilidade, bateria e
-        // disponibilidade)
+        if (missao.getStatus() != StatusMissao.PENDENTE) {
+            throw new IllegalStateException("Apenas missões pendentes podem receber um robô.");
+        }
+
+        if (!robo.verificarDisponibilidade()) {
+            throw new IllegalStateException("O robô não está disponível.");
+        }
+
+        // A própria missão valida compatibilidade e bateria.
         missao.atribuirRobo(robo);
 
-        // Se atribuído com sucesso, remove da fila de pendentes
+        // Remove da fila somente depois que a atribuição funcionar.
         missoesPendentes.remove(missao);
+
+        System.out.println("Robô " + robo.getNome() + " atribuído à missão " + missao.getId() + ".");
     }
 
     // 6. Listar Missões Pendentes (da fila)
@@ -168,55 +200,86 @@ public class CentralResgate implements Serializable {
     }
 
     // Execução de missão
+    // 8. Execução de Missão
     public void executarMissao(int idMissao, String resultado) {
         Missao missao = buscarMissaoPorId(idMissao);
+
         if (missao == null) {
-            throw new IllegalArgumentException("Missão com ID " + idMissao + " não encontrada.");
+            throw new IllegalArgumentException(
+                    "Missão com ID " + idMissao + " não encontrada.");
+        }
+
+        if (resultado == null || resultado.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "O resultado da missão não pode ser vazio.");
         }
 
         missao.iniciar();
         missao.concluir(resultado);
     }
 
-    // FUNCIONALIDADE INOVADORA (Obrigatória - 1,0 ponto):
-    // Despacho inteligente automático da próxima missão da fila
+    // Cancelamento de missão
+    public void cancelarMissao(int idMissao) {
+        Missao missao = buscarMissaoPorId(idMissao);
+
+        if (missao == null) {
+            throw new IllegalArgumentException(
+                    "Missão com ID " + idMissao + " não encontrada.");
+        }
+
+        missao.cancelar();
+
+        // Remove a missão da fila, caso esteja nela.
+        missoesPendentes.remove(missao);
+
+        System.out.println("Missão removida da fila de pendências, se estava presente.");
+    }
+
+    // Funcionalidade inovadora: despacho inteligente automático
     public boolean atenderProximaMissaoAutomaticamente(String resultadoPadrao) {
         System.out.println("\n=== Despacho Inteligente Automático ===");
+
+        if (resultadoPadrao == null || resultadoPadrao.trim().isEmpty()) {
+            throw new IllegalArgumentException("O resultado padrão não pode ser vazio.");
+        }
 
         if (missoesPendentes.isEmpty()) {
             System.out.println("Nenhuma missão pendente na fila para atendimento automático.");
             return false;
         }
 
-        Missao missao = missoesPendentes.peek(); // Olha a primeira da fila sem remover
+        Missao missao = missoesPendentes.peek();
 
-        // Procura robô disponível, compatível e com mais bateria usando Streams
+        // Procura o robô disponível mais adequado para a missão.
         Optional<Robo> melhorRobo = robos.values().stream()
                 .filter(Robo::verificarDisponibilidade)
                 .filter(r -> r.podeExecutar(missao.getTipo()))
                 .filter(r -> r.consultarBateria() >= r.calcularConsumo(missao))
                 .max(Comparator.comparingDouble(Robo::consultarBateria));
 
-        if (melhorRobo.isPresent()) {
-            Robo robo = melhorRobo.get();
-            System.out.println("Melhor robô encontrado para a missão " + missao.getId() + ": " + robo.getNome()
-                    + " (Bateria: " + robo.consultarBateria() + "%)");
-
-            // Remove da fila e atribui
-            missoesPendentes.poll();
-            missao.atribuirRobo(robo);
-
-            // Inicia e conclui a missão automaticamente
-            missao.iniciar();
-            missao.concluir(resultadoPadrao);
-            return true;
-        } else {
-            System.out.println("Nenhum robô compatível/disponível com bateria suficiente para a missão "
-                    + missao.getId() + ". Missão continua na fila.");
+        if (melhorRobo.isEmpty()) {
+            System.out.println("Nenhum robô compatível, disponível e com bateria suficiente.");
+            System.out.println("A missão continua na fila.");
             return false;
         }
-    }
 
+        Robo robo = melhorRobo.get();
+
+        System.out.println("Robô selecionado: " + robo.getNome()
+                + " (Bateria: " + robo.consultarBateria() + "%)");
+
+        // Primeiro atribui o robô.
+        missao.atribuirRobo(robo);
+
+        // Só remove da fila depois da atribuição bem-sucedida.
+        missoesPendentes.poll();
+
+        // Executa e conclui a missão.
+        missao.iniciar();
+        missao.concluir(resultadoPadrao);
+
+        return true;
+    }
     // Persistência de Dados (Regra 10 do trabalho)
     public void salvarDados(String caminhoArquivo) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoArquivo))) {

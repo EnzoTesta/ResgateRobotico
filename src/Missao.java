@@ -63,8 +63,8 @@ public class Missao implements Serializable {
     }
 
     public void iniciar() {
-        if (this.status == StatusMissao.CONCLUIDA || this.status == StatusMissao.CANCELADA) {
-            throw new IllegalStateException("Uma missão concluída ou cancelada não pode ser iniciada.");
+        if (this.status != StatusMissao.PENDENTE) {
+            throw new IllegalStateException("Apenas missões pendentes podem ser iniciadas.");
         }
         if (this.roboResponsavel == null) {
             throw new IllegalStateException("A missão não pode ser iniciada sem um robô atribuído.");
@@ -109,8 +109,12 @@ public class Missao implements Serializable {
 
         if (this.roboResponsavel != null) {
             this.roboResponsavel.enviarMensagem("Missão " + this.id + " foi cancelada.");
-            if (this.roboResponsavel.consultarBateria() > 0) {
-                this.roboResponsavel.setStatus(StatusRobo.DISPONIVEL);
+            if (this.roboResponsavel.getStatus() == StatusRobo.EM_MISSAO) {
+                if (this.roboResponsavel.consultarBateria() > 0) {
+                    this.roboResponsavel.setStatus(StatusRobo.DISPONIVEL);
+                } else {
+                    this.roboResponsavel.setStatus(StatusRobo.SEM_BATERIA);
+                }
             }
         }
 

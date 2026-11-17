@@ -11,10 +11,16 @@ public abstract class Robo implements Comunicavel, Serializable {
 
     public Robo(int id, String nome, double nivelBateria) {
 
+        if (id <= 0) {
+            throw new IllegalArgumentException("O ID do robô deve ser maior que zero.");
+        }
+
+        if (nome == null || nome.trim().isEmpty()) {
+            throw new IllegalArgumentException("O nome do robô não pode ser vazio.");
+        }
+
         if (nivelBateria < 0 || nivelBateria > 100) {
-            throw new IllegalArgumentException(
-                    "A bateria deve estar entre 0 e 100."
-            );
+            throw new IllegalArgumentException("A bateria deve estar entre 0 e 100.");
         }
 
         this.id = id;
@@ -91,20 +97,30 @@ public abstract class Robo implements Comunicavel, Serializable {
     }
 
     public void setStatus(StatusRobo status) {
+        if (status == null) {
+            throw new IllegalArgumentException("O status do robô não pode ser nulo.");
+        }
+
+        if (this.nivelBateria == 0 && status == StatusRobo.DISPONIVEL) {
+            throw new IllegalStateException(
+                    "Um robô sem bateria não pode ficar disponível.");
+        }
+
         this.status = status;
     }
 
     public void setNivelBateria(double nivelBateria) {
         if (nivelBateria < 0 || nivelBateria > 100) {
             throw new IllegalArgumentException(
-                    "A bateria deve estar entre 0 e 100."
-            );
+                    "A bateria deve estar entre 0 e 100.");
         }
 
         this.nivelBateria = nivelBateria;
 
         if (nivelBateria == 0) {
             this.status = StatusRobo.SEM_BATERIA;
+        } else if (this.status == StatusRobo.SEM_BATERIA) {
+            this.status = StatusRobo.DISPONIVEL;
         }
     }
 

@@ -1,0 +1,12 @@
+=========================================
+     RELATÓRIO GERAL DA CENTRAL          
+=========================================
+Data e Hora de Geração: 17/11/2026 15:45:54
+-----------------------------------------
+Total de Robôs Cadastrados: 2
+Robôs Disponíveis: 2
+Total de Missões Registradas: 3
+Missões Concluídas: 2
+Missões Pendentes na Fila: 1
+Missões Canceladas: 0
+=========================================

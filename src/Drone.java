@@ -31,7 +31,9 @@ public class Drone extends Robo {
 
     @Override
     public void executarMissao(Missao missao) {
-
+        if (missao == null) {
+            throw new IllegalArgumentException("A missão não pode ser nula.");
+        }
         if (!verificarDisponibilidade()) {
             throw new IllegalStateException(
                     "Drone não está disponível."

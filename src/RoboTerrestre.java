@@ -31,7 +31,9 @@ public class RoboTerrestre extends Robo {
 
     @Override
     public void executarMissao(Missao missao) {
-
+        if (missao == null) {
+            throw new IllegalArgumentException("A missão não pode ser nula.");
+        }
         if (!verificarDisponibilidade()) {
             throw new IllegalStateException(
                     "Robô terrestre não está disponível."
