@@ -1,5 +1,5 @@
-package resgate;
-
 public enum PrioridadeMissao {
-    BAIXA, MEDIA, ALTA
+    BAIXA,
+    MEDIA,
+    ALTA
 }

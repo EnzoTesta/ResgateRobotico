@@ -1,5 +1,5 @@
-package resgate;
-
 public enum TipoTerreno {
-    URBANO, ALAGADO, IRREGULAR
+    URBANO,
+    ALAGADO,
+    IRREGULAR
 }

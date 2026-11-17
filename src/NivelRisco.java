@@ -1,5 +1,5 @@
-package resgate;
-
 public enum NivelRisco {
-    BAIXO, MEDIO, ALTO
+    BAIXO,
+    MEDIO,
+    ALTO
 }

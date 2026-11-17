@@ -1,5 +1,6 @@
-package resgate;
-
 public enum StatusMissao {
-    PENDENTE, EM_ANDAMENTO, CONCLUIDA, CANCELADA
+    PENDENTE,
+    EM_ANDAMENTO,
+    CONCLUIDA,
+    CANCELADA
 }

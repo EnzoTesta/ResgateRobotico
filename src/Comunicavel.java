@@ -1,4 +1,3 @@
-package resgate;
 
 public interface Comunicavel {
     void enviarMensagem(String mensagem);
