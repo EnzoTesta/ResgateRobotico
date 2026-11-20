@@ -46,18 +46,18 @@ public class Relatorio implements Serializable {
         return sb.toString();
     }
 
-    public void salvarEmArquivo(String caminhoArquivo) {
-        if (caminhoArquivo == null || caminhoArquivo.trim().isEmpty()) {
-            throw new IllegalArgumentException("O caminho do arquivo não pode ser vazio.");
-        }
+        public void salvarEmArquivo(String caminhoArquivo) {
+            if (caminhoArquivo == null || caminhoArquivo.trim().isEmpty()) {
+                throw new IllegalArgumentException("O caminho do arquivo não pode ser vazio.");
+            }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(caminhoArquivo))) {
-            writer.write(gerarResumo());
-            System.out.println("Relatório salvo com sucesso em: " + caminhoArquivo);
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar o relatório em arquivo: " + e.getMessage());
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(caminhoArquivo))) {
+                writer.write(gerarResumo());
+                System.out.println("Relatório salvo com sucesso em: " + caminhoArquivo);
+            } catch (IOException e) {
+                System.err.println("Erro ao salvar o relatório em arquivo: " + e.getMessage());
+            }
         }
-    }
 
     // Getters
 

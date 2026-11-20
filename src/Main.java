@@ -1,122 +1,184 @@
 
+import java.util.Scanner;
+
 public class Main {
+
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final String ARQUIVO = "dados_central.dat";
 
     public static void main(String[] args) {
 
-        System.out.println("==============================================================");
-        System.out.println("   SISTEMA DE COORDENAÇÃO DE ROBÔS PARA MISSÕES DE RESGATE    ");
-        System.out.println("==============================================================\n");
-
-        String arquivoBackup = "dados_central.dat";
-
-        // 1. Recuperação ou criação da central
-        CentralResgate central = CentralResgate.carregarDados(arquivoBackup);
-        boolean centralNova = false;
+        CentralResgate central = CentralResgate.carregarDados(ARQUIVO);
 
         if (central == null) {
-            central = new CentralResgate("Central de Operações de Defesa Civil");
-            centralNova = true;
-            System.out.println("Nova central criada.");
-        } else {
-            System.out.println("Central recuperada com sucesso!");
+            central = new CentralResgate("Central de Resgate");
+            System.out.println("Nova central criada!");
         }
 
-        System.out.println(">> Central: " + central.getNome());
+        int opcao;
 
-        if (centralNova) {
+        do {
+            System.out.println("\n======================================");
+            System.out.println("       SISTEMA DE RESGATE ROBÓTICO");
+            System.out.println("======================================");
+            System.out.println("1  - Listar robôs");
+            System.out.println("2  - Listar áreas de operação");
+            System.out.println("3  - Listar missões");
+            System.out.println("4  - Listar missões pendentes");
+            System.out.println("5  - Gerar relatório geral");
+            System.out.println("6  - Despacho inteligente automático");
+            System.out.println("7  - Atribuir robô manualmente");
+            System.out.println("8  - Executar missão");
+            System.out.println("9  - Cancelar missão");
+            System.out.println("10 - Salvar dados");
+            System.out.println("0  - Sair");
+            System.out.println("======================================");
 
-            // 2. Cadastro de áreas
-            System.out.println("\n1. CADASTRO DE ÁREAS DE OPERAÇÃO");
-
-            AreaOperacao area1 = new AreaOperacao(
-                    1, "Encosta do Morro", "Região Serrana",
-                    TipoTerreno.IRREGULAR, NivelRisco.ALTO,
-                    "Risco crítico de deslizamento de terra");
-
-            AreaOperacao area2 = new AreaOperacao(
-                    2, "Centro Histórico", "Zona Urbana",
-                    TipoTerreno.ALAGADO, NivelRisco.MEDIO,
-                    "Ruas inundadas após fortes chuvas");
-
-            central.cadastrarArea(area1);
-            central.cadastrarArea(area2);
-
-            // 3. Cadastro de robôs
-            System.out.println("\n2. CADASTRO DE ROBÔS");
-
-            Drone drone1 = new Drone(101, "Drone Falcão-01", 85.0, 120.0);
-            RoboTerrestre robo1 = new RoboTerrestre(201, "Terrestre Titã-01", 90.0, 60.0);
-
-            central.cadastrarRobo(drone1);
-            central.cadastrarRobo(robo1);
-
-            // 4. Registro de missões
-            System.out.println("\n3. REGISTRO DE MISSÕES");
-
-            Missao m1 = new Missao(
-                    1, "Reconhecimento aéreo da encosta",
-                    TipoMissao.RECONHECIMENTO, area1, PrioridadeMissao.ALTA);
-
-            Missao m2 = new Missao(
-                    2, "Entrega de kits de primeiros socorros",
-                    TipoMissao.TRANSPORTE_SUPRIMENTOS, area2, PrioridadeMissao.MEDIA);
-
-            Missao m3 = new Missao(
-                    3, "Localização de pessoas isoladas",
-                    TipoMissao.LOCALIZACAO_PESSOAS, area2, PrioridadeMissao.ALTA);
-
-            central.registrarMissao(m1);
-            central.registrarMissao(m2);
-            central.registrarMissao(m3);
-
-            // 5. Visualização
-            System.out.println("\n4. ESTADO ATUAL DOS ROBÔS E DA FILA");
-            central.listarRobosDisponiveis();
-            central.listarMissoesPendentes();
-
-            // 6. Teste de atribuição inválida
-            System.out.println("\n5. TESTE DE REGRA DE NEGÓCIO");
+            opcao = lerInteiro("Escolha uma opção: ");
 
             try {
-                central.atribuirRoboMissao(101, 2);
-            } catch (IllegalArgumentException | IllegalStateException e) {
-                System.out.println("Exceção capturada: " + e.getMessage());
+                switch (opcao) {
+
+                    case 1:
+                        listarRobos(central);
+                        break;
+
+                    case 2:
+                        listarAreas(central);
+                        break;
+
+                    case 3:
+                        listarMissoes(central);
+                        break;
+
+                    case 4:
+                        central.listarMissoesPendentes();
+                        break;
+
+                    case 5:
+                        central.gerarRelatorioGeral();
+                        break;
+
+                    case 6:
+                        central.atenderProximaMissaoAutomaticamente(
+                                "Missão concluída com sucesso."
+                        );
+                        central.salvarDados(ARQUIVO);
+                        break;
+
+                    case 7:
+                        int idRobo = lerInteiro("Digite o ID do robô: ");
+                        int idMissao = lerInteiro("Digite o ID da missão: ");
+
+                        central.atribuirRoboMissao(idRobo, idMissao);
+                        central.salvarDados(ARQUIVO);
+                        break;
+
+                    case 8:
+                        int idExecucao = lerInteiro(
+                                "Digite o ID da missão: "
+                        );
+
+                        String resultado = lerTexto(
+                                "Digite o resultado da missão: "
+                        );
+
+                        central.executarMissao(idExecucao, resultado);
+                        central.salvarDados(ARQUIVO);
+                        break;
+
+                    case 9:
+                        int idCancelamento = lerInteiro(
+                                "Digite o ID da missão: "
+                        );
+
+                        central.cancelarMissao(idCancelamento);
+                        central.salvarDados(ARQUIVO);
+                        break;
+
+                    case 10:
+                        central.salvarDados(ARQUIVO);
+                        break;
+
+                    case 0:
+                        central.salvarDados(ARQUIVO);
+                        System.out.println("Encerrando o sistema...");
+                        break;
+
+                    default:
+                        System.out.println("Opção inválida!");
+                }
+
+            } catch (IllegalArgumentException |
+                     IllegalStateException e) {
+
+                System.out.println("Erro: " + e.getMessage());
+
             }
 
-            // 7. Execução manual
-            System.out.println("\n6. EXECUÇÃO MANUAL DE MISSÃO");
+        } while (opcao != 0);
 
-            central.atribuirRoboMissao(101, 1);
-            central.executarMissao(
-                    1, "Fotos térmicas geradas com sucesso. Área segura identificada.");
+        scanner.close();
+    }
 
-            // 8. Funcionalidade inovadora
-            System.out.println("\n7. DESPACHO INTELIGENTE AUTOMÁTICO");
+    private static void listarRobos(CentralResgate central) {
 
-            central.atenderProximaMissaoAutomaticamente(
-                    "Medicamentos e água entregues no abrigo central.");
+        System.out.println("\n=== ROBÔS CADASTRADOS ===");
 
-            // 9. Relatório
-            System.out.println("\n8. GERAÇÃO DE RELATÓRIO");
-
-            Relatorio relatorio = central.gerarRelatorioGeral();
-            relatorio.salvarEmArquivo("relatorio_geral.txt");
-
-        } else {
-            // Exibe os dados recuperados
-            System.out.println("\n=== DADOS RECUPERADOS ===");
-            central.listarRobosDisponiveis();
-            central.listarMissoesPendentes();
-            central.gerarRelatorioGeral();
+        if (central.getRobos().isEmpty()) {
+            System.out.println("Nenhum robô cadastrado.");
+            return;
         }
 
-        // 10. Salvamento da central
-        System.out.println("\n9. SALVAMENTO DOS DADOS");
+        central.getRobos().values().forEach(Robo::exibirResumo);
+    }
 
-        central.salvarDados(arquivoBackup);
+    private static void listarAreas(CentralResgate central) {
 
-        System.out.println("\n==============================================================");
-        System.out.println("   SIMULAÇÃO FINALIZADA COM SUCESSO!                          ");
-        System.out.println("==============================================================");
+        System.out.println("\n=== ÁREAS DE OPERAÇÃO ===");
+
+        if (central.getAreas().isEmpty()) {
+            System.out.println("Nenhuma área cadastrada.");
+            return;
+        }
+
+        central.getAreas().forEach(area ->
+                System.out.println(
+                        "ID: " + area.getId() +
+                                " | Nome: " + area.getNome()
+                )
+        );
+    }
+
+    private static void listarMissoes(CentralResgate central) {
+
+        System.out.println("\n=== MISSÕES CADASTRADAS ===");
+
+        if (central.getMissoes().isEmpty()) {
+            System.out.println("Nenhuma missão cadastrada.");
+            return;
+        }
+
+        central.getMissoes().forEach(Missao::exibirResumo);
+    }
+
+    private static int lerInteiro(String mensagem) {
+
+        while (true) {
+            System.out.print(mensagem);
+
+            try {
+                return Integer.parseInt(scanner.nextLine());
+
+            } catch (NumberFormatException e) {
+                System.out.println("Digite um número inteiro válido!");
+            }
+        }
+    }
+
+    private static String lerTexto(String mensagem) {
+
+        System.out.print(mensagem);
+        return scanner.nextLine();
     }
 }

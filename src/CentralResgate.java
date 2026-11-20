@@ -280,26 +280,26 @@ public class CentralResgate implements Serializable {
 
         return true;
     }
-    // Persistência de Dados (Regra 10 do trabalho)
-    public void salvarDados(String caminhoArquivo) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoArquivo))) {
-            oos.writeObject(this);
-            System.out.println("Dados da central salvos com sucesso em: " + caminhoArquivo);
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar os dados da central: " + e.getMessage());
+        // Persistência de Dados (Regra 10 do trabalho)
+        public void salvarDados(String caminhoArquivo) {
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(caminhoArquivo))) {
+                oos.writeObject(this);
+                System.out.println("Dados da central salvos com sucesso em: " + caminhoArquivo);
+            } catch (IOException e) {
+                System.err.println("Erro ao salvar os dados da central: " + e.getMessage());
+            }
         }
-    }
 
-    public static CentralResgate carregarDados(String caminhoArquivo) {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminhoArquivo))) {
-            CentralResgate central = (CentralResgate) ois.readObject();
-            System.out.println("Dados da central carregados com sucesso de: " + caminhoArquivo);
-            return central;
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Erro ao carregar dados da central: " + e.getMessage());
-            return null;
+        public static CentralResgate carregarDados(String caminhoArquivo) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(caminhoArquivo))) {
+                CentralResgate central = (CentralResgate) ois.readObject();
+                System.out.println("Dados da central carregados com sucesso de: " + caminhoArquivo);
+                return central;
+            } catch (IOException | ClassNotFoundException e) {
+                System.err.println("Erro ao carregar dados da central: " + e.getMessage());
+                return null;
+            }
         }
-    }
 
     // Métodos auxiliares de busca
     public Robo buscarRoboPorId(int id) {
